@@ -2,6 +2,7 @@ from fastapi import APIRouter, File, UploadFile
 import shutil
 import os
 from app.services.image_preprocess import preprocess_image
+from app.services.ocr_barcode import extract_text, extract_barcodes
 
 router = APIRouter()
 
@@ -17,12 +18,17 @@ async def upload_image(file: UploadFile = File(...)):
 
 # Set processed image path
     processed_path = os.path.join(UPLOAD_DIR, f"processed_{file.filename}")
-
-    # Preprocess the image
+# Preprocess the image
     preprocess_image(file_location, processed_path)
+
+# OCR and Barcode Detection
+    text = extract_text(processed_path)
+    barcodes = extract_barcodes(processed_path)
 
     return {
         "original": file.filename,
         "processed": f"processed_{file.filename}",
+        "ocr_text": text,
+        "barcodes": barcodes,
         "status": "uploaded and processed"
     }
